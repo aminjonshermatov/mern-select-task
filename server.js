@@ -43,7 +43,7 @@ app.get('/api/posts.get', allowCrossDomain, async (req, res) => {
             return;
         };
         res.type('application/json')
-        res.status(200).json({ results });
+        res.status(200).json(results);
     });
 });
 
