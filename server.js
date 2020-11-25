@@ -45,15 +45,15 @@ app.get('/api/posts.get', allowCrossDomain, (req, res) => {
         const parsedPosts = await results.map(item => {
             let photo = null;
             if (item.photo_url !== '') {
-                photo.url = photo_url;
-                photo.alt = photo_alt;
+                photo.url = item.photo_url;
+                photo.alt = item.photo_alt;
             }
 
             return {
                 ...item,
                 author: {
-                    avatar: author_avatar,
-                    name: author_name
+                    avatar: item.author_avatar,
+                    name: item.author_name
                 },
                 photo
             };
