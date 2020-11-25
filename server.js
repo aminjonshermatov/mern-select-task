@@ -162,7 +162,7 @@ app.post('/api/posts.like', allowCrossDomain, async (req, res) => {
     });
 });
 
-app.post('/api/posts.like', allowCrossDomain, async (req, res) => {
+app.post('/api/posts.dislike', allowCrossDomain, async (req, res) => {
     connection.query(`UPDATE posts SET likes=likes-1 WHERE id=${req.body.id};`, (error, results) => {
         if (error) {
             res.type('application/json');
