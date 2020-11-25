@@ -42,20 +42,19 @@ app.get('/api/posts.get', allowCrossDomain, (req, res) => {
             res.status(400).json({ error });
             return;
         };
-        const parsedPosts = await results.map(item => {
+        const parsedPosts = await results.map(({author_avatar, author_name, photo_url, photo_alt, ...item}) => {
             let photo = {};
             if (item.photo_url !== '') {
-                photo.url = item.photo_url;
-                photo.alt = item.photo_alt;
+                photo.url = photo_url;
+                photo.alt = photo_alt;
+            } else {
+                photo = null;
             }
-            photo = null;
-            console.log(item);
-            console.log(photo);
             return {
                 ...item,
                 author: {
-                    avatar: item.author_avatar,
-                    name: item.author_name
+                    avatar: author_avatar,
+                    name: author_name
                 },
                 photo
             };
