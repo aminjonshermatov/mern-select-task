@@ -1,0 +1,19 @@
+{
+  "name": "social-rest-api",
+  "version": "1.0.0",
+  "description": "resp-api server for social app",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon server.js"
+  },
+  "keywords": [
+    "resp-api"
+  ],
+  "author": "aminjonshermatov",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1",
+    "mysql": "^2.18.1"
+  }
+}

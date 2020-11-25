@@ -1,0 +1,17 @@
+{
+    "sqltools.connections": [
+        {
+            "database": "socialexpress",
+            "driver": "MySQL",
+            "mysqlOptions": {
+                "authProtocol": "default"
+            },
+            "name": "social",
+            "password": "pass",
+            "port": 3306,
+            "previewLimit": 50,
+            "server": "localhost",
+            "username": "root"
+        }
+    ]
+}
