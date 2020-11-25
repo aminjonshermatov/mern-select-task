@@ -48,7 +48,8 @@ app.get('/api/posts.get', allowCrossDomain, (req, res) => {
                 photo.url = item.photo_url;
                 photo.alt = item.photo_alt;
             }
-
+            console.log(item);
+            console.log(photo);
             return {
                 ...item,
                 author: {
