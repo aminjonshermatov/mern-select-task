@@ -33,21 +33,38 @@ const allowCrossDomain = (req, res, next) => {
     next();
 }
 
-app.get('/api/posts.get', allowCrossDomain, async (req, res) => {
+app.get('/api/posts.get', allowCrossDomain, (req, res) => {
     connection.query(`SELECT id, author_avatar, author_name, content, photo_url, photo_alt, hit, likes, likedByMe, hidden, tags, created
                         FROM posts
-                        WHERE removed = FALSE`, (error, results) => {
+                        WHERE removed = FALSE`, async (error, results) => {
         if (error) {
             res.type('application/json');
             res.status(400).json({ error });
             return;
         };
-        res.type('application/json')
-        res.status(200).json(results);
+        const parsedPosts = await results.map(item => {
+            let photo = null;
+            if (item.photo_url !== '') {
+                photo.url = photo_url;
+                photo.alt = photo_alt;
+            }
+
+            return {
+                ...item,
+                author: {
+                    avatar: author_avatar,
+                    name: author_name
+                },
+                photo
+            };
+        });
+
+        res.type('application/json');
+        res.status(200).json(parsedPosts);
     });
 });
 
-app.post('/api/posts.getbyId', allowCrossDomain, async (req, res) => {
+app.post('/api/posts.getbyId', allowCrossDomain, (req, res) => {
     const { id } = req.body;
 
     if (!id || id < 0 || isNaN(id)) {
@@ -70,7 +87,7 @@ app.post('/api/posts.getbyId', allowCrossDomain, async (req, res) => {
     });
 });
 
-app.post('/api/posts.addPost', allowCrossDomain, async (req, res) => {    
+app.post('/api/posts.addPost', allowCrossDomain, (req, res) => {    
     connection.query(`INSERT INTO posts (
                                         author_avatar,
                                         author_name,
@@ -104,7 +121,7 @@ app.post('/api/posts.addPost', allowCrossDomain, async (req, res) => {
     });
 });
 
-app.post('/api/posts.edit', allowCrossDomain, async (req, res) => {
+app.post('/api/posts.edit', allowCrossDomain, (req, res) => {
     connection.query(`UPDATE
                             posts
                         SET 
@@ -126,7 +143,7 @@ app.post('/api/posts.edit', allowCrossDomain, async (req, res) => {
     });
 });
 
-app.post('/api/posts.delete', allowCrossDomain, async (req, res) => {
+app.post('/api/posts.delete', allowCrossDomain, (req, res) => {
     connection.query(`UPDATE posts SET  removed=true WHERE id=${req.body.id};`, (error, results) => {
         if (error) {
             res.type('application/json');
@@ -138,7 +155,7 @@ app.post('/api/posts.delete', allowCrossDomain, async (req, res) => {
     });
 });
 
-app.post('/api/posts.restore', allowCrossDomain, async (req, res) => {
+app.post('/api/posts.restore', allowCrossDomain, (req, res) => {
     connection.query(`UPDATE posts SET  removed=fasle WHERE id=${req.body.id};`, (error, results) => {
         if (error) {
             res.type('application/json');
@@ -150,7 +167,7 @@ app.post('/api/posts.restore', allowCrossDomain, async (req, res) => {
     });
 });
 
-app.post('/api/posts.like', allowCrossDomain, async (req, res) => {
+app.post('/api/posts.like', allowCrossDomain, (req, res) => {
     connection.query(`UPDATE posts SET likes=likes+1 WHERE id=${req.body.id};`, (error, results) => {
         if (error) {
             res.type('application/json');
@@ -162,7 +179,7 @@ app.post('/api/posts.like', allowCrossDomain, async (req, res) => {
     });
 });
 
-app.post('/api/posts.dislike', allowCrossDomain, async (req, res) => {
+app.post('/api/posts.dislike', allowCrossDomain, (req, res) => {
     connection.query(`UPDATE posts SET likes=likes-1 WHERE id=${req.body.id};`, (error, results) => {
         if (error) {
             res.type('application/json');
