@@ -12,7 +12,7 @@ app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-app.use("/api/countries", require("./routes/countries.routes"));
+app.use("/api/countries", require(path.join(__dirname, "routes", "countries.routes.js")));
 
 if (process.env.NODE_ENV === "production") {
   app.use("/", express.static(path.join(__dirname, "client", "build")));

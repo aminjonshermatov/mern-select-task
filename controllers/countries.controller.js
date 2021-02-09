@@ -1,4 +1,5 @@
-const Countries = require("../models/counties.model.js");
+const path = require('path')
+const Countries = require(path.join(__dirname, "../", "models", "countries.model.js"));
 
 exports.get = (req, res) => {
   const { count, lastID } = req.query;

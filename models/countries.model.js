@@ -1,5 +1,6 @@
-const sql = require("./db.js");
+const path = require("path");
 
+const sql = require(path.join(__dirname, "db.js"));
 class Countries {
   get(count = 10, lasID = 0, cb) {
     sql.query(

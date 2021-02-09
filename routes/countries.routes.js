@@ -1,6 +1,7 @@
 const { Router } = require("express");
+const path = require("path");
 
-const countries = require("../controllers/countries.controller");
+const countries = require(path.join(__dirname, "../", "controllers", "countries.controller.js"));
 
 const router = Router();
 
