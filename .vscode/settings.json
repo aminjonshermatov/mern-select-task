@@ -1,7 +1,7 @@
 {
     "sqltools.connections": [
         {
-            "database": "socialexpress",
+            "database": "restAPI",
             "driver": "MySQL",
             "mysqlOptions": {
                 "authProtocol": "default"

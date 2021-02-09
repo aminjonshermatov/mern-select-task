@@ -1,195 +1,29 @@
-const mysql = require('mysql');
-const express = require('express');
-const PORT = process.env.PORT || 5000;
-const bodyParser = require('body-parser');
+const express = require("express");
+const path = require("path");
+const cors = require("cors");
+
+require("dotenv").config();
+
+const PORT = process.env.PORT;
 
 const app = express();
 
-app.use( bodyParser.json() );       // to support JSON-encoded bodies
-app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
-    extended: true
-})); 
+app.use(cors());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
-const connection = mysql.createConnection({
-    host     : 'localhost',
-    user     : 'root',
-    password : 'pass',
-    database : 'socialexpress'
-});
+app.use("/api/countries", require("./routes/countries.routes"));
 
-connection.connect(err => {
-    if (err) {
-        console.error('error connecting: ' + err.stack);
-        process.exit(1);
-    }
+if (process.env.NODE_ENV === "production") {
+  app.use("/", express.static(path.join(__dirname, "client", "build")));
 
-    console.log('MySQL connected as id ' + connection.threadId);
-});
-
-const allowCrossDomain = (req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-
-    next();
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "client", "build", "index.html"));
+  });
 }
 
-app.get('/api/posts.get', allowCrossDomain, (req, res) => {
-    connection.query(`SELECT id, author_avatar, author_name, content, photo_url, photo_alt, hit, likes, likedByMe, hidden, tags, created
-                        FROM posts
-                        WHERE removed = FALSE`, async (error, results) => {
-        if (error) {
-            res.type('application/json');
-            res.status(400).json({ error });
-            return;
-        };
-        const parsedPosts = await results.map(({author_avatar, author_name, photo_url, photo_alt, ...item}) => {
-            let photo = {};
-            if (item.photo_url !== '') {
-                photo.url = photo_url;
-                photo.alt = photo_alt;
-            } else {
-                photo = null;
-            }
-            return {
-                ...item,
-                author: {
-                    avatar: author_avatar,
-                    name: author_name
-                },
-                photo
-            };
-        });
+const start = () => {
+  app.listen(PORT, () => console.log(`Server is running on port ${PORT}.`));
+};
 
-        res.type('application/json');
-        res.status(200).json(parsedPosts);
-    });
-});
-
-app.post('/api/posts.getbyId', allowCrossDomain, (req, res) => {
-    const { id } = req.body;
-
-    if (!id || id < 0 || isNaN(id)) {
-        res.type('application/json');
-        res.status(400).json(req.body);
-        return;
-    }
-    
-    connection.query(`SELECT id, author_avatar, author_name, content, photo_url, photo_alt, hit, likes, likedByMe, hidden, tags, created
-                        FROM posts
-                        WHERE id = ${id}`, (error, results) => {
-        if (error) {
-            res.type('application/json');
-            res.status(400).json({ error });
-            return;
-        };
-        const [result] = results;
-        res.type('application/json')
-        res.status(200).json(result);
-    });
-});
-
-app.post('/api/posts.addPost', allowCrossDomain, (req, res) => {    
-    connection.query(`INSERT INTO posts (
-                                        author_avatar,
-                                        author_name,
-                                        content,
-                                        photo_url,
-                                        photo_alt,
-                                        hit,
-                                        likes,
-                                        likedByMe,
-                                        hidden,
-                                        tags
-                                    ) VALUES(
-                                        "${req.body.author_avatar}",
-                                        "${req.body.author_name}",
-                                        "${req.body.content}",
-                                        "${req.body.photo_url}",
-                                        "${req.body.photo_alt}",
-                                        ${req.body.hit},
-                                        ${req.body.likes},
-                                        ${req.body.likedByMe},
-                                        ${req.body.hidden},
-                                        "${req.body.tags}"
-                                    );`, (error, results) => {
-        if (error) {
-            res.type('application/json');
-            res.status(400).json({ error });
-            return;
-        };
-        res.type('application/json')
-        res.status(200).json(results.insertId);
-    });
-});
-
-app.post('/api/posts.edit', allowCrossDomain, (req, res) => {
-    connection.query(`UPDATE
-                            posts
-                        SET 
-                            content="${req.body.content}",
-                            photo_url="${req.body.photo_url}",
-                            photo_alt="${req.body.photo_alt}",
-                            hit=${req.body.hit},
-                            hidden=${req.body.hidden},
-                            tags="${req.body.tags}"
-                        WHERE
-                            id=${req.body.id};`, (error, results) => {
-        if (error) {
-            res.type('application/json');
-            res.status(400).json({ error });
-            return;
-        };
-        res.type('application/json')
-        res.status(204).json(results.affectedRows);
-    });
-});
-
-app.post('/api/posts.delete', allowCrossDomain, (req, res) => {
-    connection.query(`UPDATE posts SET  removed=true WHERE id=${req.body.id};`, (error, results) => {
-        if (error) {
-            res.type('application/json');
-            res.status(400).json({ error });
-            return;
-        };
-        res.type('application/json')
-        res.status(204).json(results.affectedRows);
-    });
-});
-
-app.post('/api/posts.restore', allowCrossDomain, (req, res) => {
-    connection.query(`UPDATE posts SET  removed=fasle WHERE id=${req.body.id};`, (error, results) => {
-        if (error) {
-            res.type('application/json');
-            res.status(400).json({ error });
-            return;
-        };
-        res.type('application/json')
-        res.status(204).json(results.affectedRows);
-    });
-});
-
-app.post('/api/posts.like', allowCrossDomain, (req, res) => {
-    connection.query(`UPDATE posts SET likes=likes+1 WHERE id=${req.body.id};`, (error, results) => {
-        if (error) {
-            res.type('application/json');
-            res.status(400).json({ error });
-            return;
-        };
-        res.type('application/json')
-        res.status(204).json(results.affectedRows);
-    });
-});
-
-app.post('/api/posts.dislike', allowCrossDomain, (req, res) => {
-    connection.query(`UPDATE posts SET likes=likes-1 WHERE id=${req.body.id};`, (error, results) => {
-        if (error) {
-            res.type('application/json');
-            res.status(400).json({ error });
-            return;
-        };
-        res.type('application/json')
-        res.status(204).json(results.affectedRows);
-    });
-});
-
-app.listen(PORT, () => console.log(`App started at port ${PORT}....`));
+start();
